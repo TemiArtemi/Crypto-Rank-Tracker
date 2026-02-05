@@ -8,7 +8,7 @@ import streamlit as st
 # --- CONFIGURACIÓN --- (variables)
 API_KEY = st.secrets["API_KEY"]
 LIMITE = 400  # Número de monedas a rastrear
-ARCHIVO_DATOS = 'historico_top300_ranking.csv'
+ARCHIVO_DATOS = 'historico_top400_ranking.csv'
 
 def obtener_top_rankings():
     # Usamos 'listings/latest' para traer la lista completa por ranking
