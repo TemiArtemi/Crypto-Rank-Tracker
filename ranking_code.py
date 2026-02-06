@@ -4,9 +4,11 @@ import csv
 from datetime import datetime
 import os
 import streamlit as st
+import pandas as pd
 
 # --- CONFIGURACIÓN --- (variables)
-API_KEY = st.secrets["API_KEY"]
+# Intenta leer de GitHub (env) y si no, de Streamlit (secrets)
+API_KEY = os.getenv("API_KEY") or st.secrets.get("API_KEY")
 LIMITE = 400  # Número de monedas a rastrear
 ARCHIVO_DATOS = 'historico_top400_ranking.csv'
 
@@ -43,13 +45,24 @@ def obtener_top_rankings():
         print(f"Error al obtener datos: {e}")
 
 def guardar_en_csv(filas):
-    file_exists = os.path.isfile(ARCHIVO_DATOS) # Devuelve un booleano si archivo está en el directorio actual o no
-    with open(ARCHIVO_DATOS, mode='a', newline='', encoding='utf-8') as file: # el mode='a' es añadir. El mode='w' seria borrar todo y escribir desde cero
-    #newline='' para que ni haya lineas en blanco
-        writer = csv.writer(file)
-        if not file_exists:
-            writer.writerow(['Fecha', 'Nombre', 'Ticker', 'Ranking'])
-        writer.writerows(filas)  # Guardamos todas las filas de golpe
+    columnas = ['Fecha', 'Nombre', 'Ticker', 'Ranking']
+    df_nuevo = pd.DataFrame(filas, columns=columnas)
+
+    if os.path.isfile(ARCHIVO_DATOS):
+        # 1. Leemos lo que ya tenemos
+        df_antiguo = pd.read_csv(ARCHIVO_DATOS)
+        # 2. Juntamos lo viejo con lo nuevo
+        df_final = pd.concat([df_antiguo, df_nuevo], ignore_index=True)
+    else:
+        df_final = df_nuevo
+
+    # 3. EL TRUCO: Eliminamos duplicados
+    # Si coinciden Fecha y Ticker, se queda con el último (keep='last')
+    df_final = df_final.drop_duplicates(subset=['Fecha', 'Ticker'], keep='last')
+
+    # 4. Guardamos el archivo limpio (sobrescribiendo el anterior)
+    df_final.to_csv(ARCHIVO_DATOS, index=False, encoding='utf-8')
+    print(f"Base de datos actualizada y limpia de duplicados.")
 
 if __name__ == "__main__":
     obtener_top_rankings()
