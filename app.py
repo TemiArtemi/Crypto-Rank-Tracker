@@ -9,7 +9,7 @@ st.title("📊 Ranking Histórico de Criptomonedas (Top 400)")
 st.markdown("Visualiza cómo ha evolucionado la posición de tus criptos favoritas según el ranking de Coinmarketcap")
 
 # 1. Cargar los datos
-@st.cache_data # Esto hace que la web cargue rápido
+@st.cache_data(ttl=3600) # Esto hace que la web cargue rápido
 def cargar_datos():
     df = pd.read_csv('historico_top400_ranking.csv')
     df['Fecha'] = pd.to_datetime(df['Fecha'])
